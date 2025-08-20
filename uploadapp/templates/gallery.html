@@ -1,7 +1,10 @@
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
     <title>Gallery</title>
+    <!-- jQuery MUST come before Bootstrap -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -60,29 +63,201 @@
             box-shadow: 0 0 10px #00c6ff;
             transform: scale(1.05);
         }
+
+        /* Image error handling */
+        .image-error {
+            height: 250px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #6c757d;
+            font-size: 14px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .image-error i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* Debug info */
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
     <div class="container text-center mt-5">
         <h2>Image Gallery</h2>
+        
+        <!-- Debug Information -->
+        <div class="debug-info text-left">
+            <strong>Debug Info:</strong><br>
+            Total images: {{ images|length }}<br>
+            MEDIA_URL: {{ MEDIA_URL }}<br>
+            MEDIA_ROOT: Check console for full path
+        </div>
+
         <div class="row justify-content-center">
             {% for img in images %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="{{ img.image.url }}" alt="{{ img.title }}">
+                        {% if img.image %}
+                            <img src="{{ img.image.url }}" 
+                                 alt="{{ img.title }}" 
+                                 onerror="handleImageError(this, '{{ img.title }}', '{{ img.image.url }}', '{{ img.image.path|default:"No path" }}')"
+                                 onload="console.log('Image loaded successfully:', '{{ img.image.url }}')">
+                        {% else %}
+                            <div class="image-error">
+                                <i>🖼️</i>
+                                <span>No image file</span>
+                            </div>
+                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ img.title }}</h5>
+                            {% if img.image %}
+                                <small class="text-muted">
+                                    File: {{ img.image.name }}<br>
+                                    URL: {{ img.image.url }}
+                                </small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% empty %}
-                <p>No images uploaded yet.</p>
+                <div class="col-12">
+                    <div class="alert alert-warning" role="alert">
+                        <h4>📸 No images uploaded yet</h4>
+                        <p>Upload your first image to get started!</p>
+                    </div>
+                </div>
             {% endfor %}
         </div>
         <a class="btn btn-primary mt-4" href="{% url 'upload' %}">Upload More</a>
+        
+        <!-- Additional Debug Info -->
+        <div class="mt-4">
+            <button class="btn btn-info btn-sm" onclick="checkMediaFiles()">Check Media Files</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleDebug()">Toggle Debug</button>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global debug flag
+        let debugMode = true;
+
+        // Handle image loading errors
+        function handleImageError(img, title, url, path) {
+            console.error('Image failed to load:', {
+                title: title,
+                url: url,
+                path: path,
+                element: img
+            });
+
+            // Create error placeholder
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'image-error';
+            errorDiv.innerHTML = `
+                <i>❌</i>
+                <span>Image not found</span>
+                <small style="margin-top: 5px; font-size: 10px;">
+                    ${title}<br>
+                    URL: ${url}
+                </small>
+            `;
+
+            // Replace the image with error placeholder
+            img.parentNode.replaceChild(errorDiv, img);
+        }
+
+        // Check media files via AJAX
+        function checkMediaFiles() {
+            console.log('Checking media configuration...');
+            console.log('Current page URL:', window.location.href);
+            
+            // Try to fetch a test image
+            const images = document.querySelectorAll('.card img');
+            if (images.length > 0) {
+                const firstImageUrl = images[0].src;
+                
+                fetch(firstImageUrl)
+                    .then(response => {
+                        console.log('Image fetch response:', response.status, response.statusText);
+                        if (response.ok) {
+                            alert('✅ Images are accessible! Check console for details.');
+                        } else {
+                            alert('❌ Images are not accessible. Status: ' + response.status);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        alert('❌ Network error accessing images: ' + error.message);
+                    });
+            } else {
+                alert('No images to check. Upload some images first.');
+            }
+        }
+
+        // Toggle debug information
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugInfo = document.querySelector('.debug-info');
+            const smallTags = document.querySelectorAll('small.text-muted');
+            
+            if (debugMode) {
+                debugInfo.style.display = 'block';
+                smallTags.forEach(tag => tag.style.display = 'block');
+            } else {
+                debugInfo.style.display = 'none';
+                smallTags.forEach(tag => tag.style.display = 'none');
+            }
+        }
+
+        // Page load debugging
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Django Gallery Debug Info ===');
+            console.log('Page loaded at:', new Date().toLocaleString());
+            
+            // Check all image sources
+            const images = document.querySelectorAll('.card img');
+            console.log('Found', images.length, 'images on page');
+            
+            images.forEach((img, index) => {
+                console.log(`Image ${index + 1}:`, {
+                    src: img.src,
+                    alt: img.alt,
+                    complete: img.complete,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight
+                });
+            });
+
+            console.log('Media URL from template:', '{{ MEDIA_URL }}');
+            console.log('=== End Debug Info ===');
+        });
+
+        // Check for broken images every 2 seconds
+        setInterval(function() {
+            const images = document.querySelectorAll('.card img');
+            images.forEach(img => {
+                if (img.naturalWidth === 0 && img.complete) {
+                    console.warn('Broken image detected:', img.src);
+                }
+            });
+        }, 2000);
+    </script>
 </body>
 </html>
