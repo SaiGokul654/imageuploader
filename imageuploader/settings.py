@@ -132,7 +132,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (User uploaded files)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+# Use Render persistent disk if in production
+if 'RENDER' in os.environ:
+    MEDIA_ROOT = Path("/opt/render/project/mediafiles")  # Mount a persistent disk at /mediafiles in Render
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'  # Local development
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

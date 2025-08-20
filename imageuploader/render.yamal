@@ -9,3 +9,7 @@ services:
         value: imageuploader.settings
       - key: PYTHON_VERSION
         value: 3.11
+    disk:
+      name: mediafiles
+      mountPath: /opt/render/project/mediafiles
+      sizeGB: 1
