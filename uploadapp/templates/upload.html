@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Image</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Rain Effect */
+        .rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .drop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Upload Box */
+        .upload-container {
+            position: relative;
+            background-color: rgba(218, 224, 239, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 1;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+       
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #00c6ff, 0 0 10px #0072ff; }
+            to { text-shadow: 0 0 15px #00c6ff, 0 0 30px #0072ff; }
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #0072ff, #00c6ff);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #00c6ff;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0072ff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #00c6ff;
+            text-shadow: 0 0 5px #00c6ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Rain Background -->
+    <div class="rain"></div>
+
+    <!-- Upload Form -->
+    <div class="upload-container">
+        <h2>Upload New Image</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Upload</button>
+        </form>
+        <a href="{% url 'gallery' %}">View Gallery</a>
+    </div>
+
+    <!-- JS to Generate Rain Drops -->
+    <script>
+        const rain = document.querySelector('.rain');
+
+        function createDrop() {
+            const drop = document.createElement('div');
+            drop.classList.add('drop');
+            drop.style.left = Math.random() * window.innerWidth + 'px';
+            drop.style.animationDuration = (0.5 + Math.random() * 0.8) + 's'; // random fall speed
+            drop.style.opacity = Math.random();
+            rain.appendChild(drop);
+
+            setTimeout(() => {
+                drop.remove();
+            }, 2000);
+        }
+
+        setInterval(createDrop, 100); // adjust density
+    </script>
+</body>
+</html>
