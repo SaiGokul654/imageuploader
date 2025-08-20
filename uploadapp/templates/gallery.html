@@ -36,6 +36,7 @@
 
         .card img {
             height: 250px;
+            width: 100%;
             object-fit: cover;
         }
 
@@ -68,7 +69,7 @@
             {% for img in images %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="{{ img.image.url }}" class="card-img-top" alt="{{ img.title }}">
+                        <img src="{{ img.image.url }}" alt="{{ img.title }}">
                         <div class="card-body">
                             <h5 class="card-title">{{ img.title }}</h5>
                         </div>
@@ -81,8 +82,7 @@
         <a class="btn btn-primary mt-4" href="{% url 'upload' %}">Upload More</a>
     </div>
 
-    <!-- Bootstrap JS (optional) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
